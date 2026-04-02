@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartWMS.Core", "SmartWMS.Core\SmartWMS.Core.csproj", "{B0A82AED-1E17-432D-AE55-FC2DC4BC7306}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartWMS.IoT.Simulator", "SmartWMS.IoT.Simulator\SmartWMS.IoT.Simulator.csproj", "{A6F7427D-72C2-4843-BB3B-7F4BBE405435}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartWMS.Domain", "SmartWMS.Domain\SmartWMS.Domain.csproj", "{A4B8F792-FADD-4C0D-86C9-051DE68BE365}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartWMS.Application", "SmartWMS.Application\SmartWMS.Application.csproj", "{5EA6EE64-A6F3-44AE-A737-D817C67AE03B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartWMS.Infrastructure", "SmartWMS.Infrastructure\SmartWMS.Infrastructure.csproj", "{544527DA-1121-4CC6-83B8-6BEE1EDE695C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartWMS.Shared", "SmartWMS.Shared\SmartWMS.Shared.csproj", "{36ABD95A-B8B4-42F3-83DD-C16761E34962}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B0A82AED-1E17-432D-AE55-FC2DC4BC7306}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0A82AED-1E17-432D-AE55-FC2DC4BC7306}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0A82AED-1E17-432D-AE55-FC2DC4BC7306}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0A82AED-1E17-432D-AE55-FC2DC4BC7306}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6F7427D-72C2-4843-BB3B-7F4BBE405435}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6F7427D-72C2-4843-BB3B-7F4BBE405435}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6F7427D-72C2-4843-BB3B-7F4BBE405435}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6F7427D-72C2-4843-BB3B-7F4BBE405435}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4B8F792-FADD-4C0D-86C9-051DE68BE365}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4B8F792-FADD-4C0D-86C9-051DE68BE365}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4B8F792-FADD-4C0D-86C9-051DE68BE365}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4B8F792-FADD-4C0D-86C9-051DE68BE365}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5EA6EE64-A6F3-44AE-A737-D817C67AE03B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5EA6EE64-A6F3-44AE-A737-D817C67AE03B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5EA6EE64-A6F3-44AE-A737-D817C67AE03B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5EA6EE64-A6F3-44AE-A737-D817C67AE03B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{544527DA-1121-4CC6-83B8-6BEE1EDE695C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{544527DA-1121-4CC6-83B8-6BEE1EDE695C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{544527DA-1121-4CC6-83B8-6BEE1EDE695C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{544527DA-1121-4CC6-83B8-6BEE1EDE695C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36ABD95A-B8B4-42F3-83DD-C16761E34962}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36ABD95A-B8B4-42F3-83DD-C16761E34962}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36ABD95A-B8B4-42F3-83DD-C16761E34962}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36ABD95A-B8B4-42F3-83DD-C16761E34962}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
