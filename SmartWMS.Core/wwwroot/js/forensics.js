@@ -8,7 +8,9 @@ const COLORS = {
     RuleNode: "#9d00ff",
     EvidenceNode: "#ffaa00",
     ScoreNode: "#ff0055",
-    ExplanationNode: "#ffffff"
+    ExplanationNode: "#ffffff",
+    DriftWorse: "#ff0000",
+    DriftBetter: "#00ff00"
 };
 
 // INITIALIZE VIEWPORT
@@ -24,6 +26,36 @@ function init() {
         .force("collision", d3.forceCollide().radius(60));
 
     document.getElementById('load-btn').addEventListener('click', loadGraph);
+    document.getElementById('diff-btn').addEventListener('click', loadDiff);
+}
+
+async function loadDiff() {
+    const baseId = document.getElementById('anomaly-id-input').value;
+    const compareId = document.getElementById('compare-id-input').value;
+    
+    if (!baseId || !compareId) return notify("Lütfen her iki ID'yi de girin.");
+
+    try {
+        const response = await fetch(`/api/anomalies/compare?baseId=${baseId}&compareId=${compareId}`);
+        if (!response.ok) throw new Error("Diff verisi alınamadı.");
+        
+        const diffData = await response.json();
+        const graphResponse = await fetch(`/api/anomalies/${compareId}/decision-graph`);
+        const graph = await graphResponse.json();
+
+        // MERGE DIFF INTO GRAPH NODES
+        graph.nodes.forEach(node => {
+            const drift = diffData.ruleDrifts.find(d => `rule-${d.ruleId}` === node.id);
+            if (drift) {
+                node.drift = drift;
+            }
+        });
+
+        render(graph);
+        notify(diffData.diffSummary, diffData.isMaterialChange);
+    } catch (err) {
+        notify("HATA: " + err.message);
+    }
 }
 
 async function loadGraph() {
@@ -123,6 +155,23 @@ function selectNode(d) {
     // Metadata Rendering
     const metaContainer = document.getElementById('node-metadata-container');
     metaContainer.innerHTML = "";
+    
+    // 🔍 DRIFT INFO (If in Diff Mode)
+    if (d.drift) {
+        const driftBar = document.createElement('div');
+        driftBar.className = 'drift-panel';
+        const color = d.drift.severityDelta > 0 ? 'red' : 'green';
+        driftBar.innerHTML = `
+            <div style="color: ${color}; font-weight: bold;">
+                DRIFT: ${d.drift.severityDelta > 0 ? 'WORSE' : 'BETTER'} 
+                (${Math.abs(d.drift.severityDelta).toFixed(2)})
+            </div>
+            <div style="font-size: 0.8rem; color: #888;">Status: ${d.drift.driftStatus}</div>
+        `;
+        metaContainer.appendChild(driftBar);
+        metaContainer.appendChild(document.createElement('hr'));
+    }
+
     Object.entries(d.metadata).forEach(([key, val]) => {
         const row = document.createElement('div');
         row.className = 'meta-row';
