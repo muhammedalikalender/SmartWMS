@@ -19,6 +19,7 @@ public static class DependencyInjection
         services.AddScoped<IConfidenceReconciler, ConfidenceReconciler>();
         services.AddScoped<IExplanationMapper, ExplanationMapper>();
         services.AddScoped<IAnomalyOrchestrator, AnomalyOrchestrator>();
+        services.AddMemoryCache();
         services.AddScoped<IAnomalyPipelineDispatcher, AnomalyPipelineDispatcher>();
         services.AddScoped<IAnomalyReplayService, AnomalyReplayService>();
         services.AddScoped<IDecisionGraphBuilder, DecisionGraphBuilder>();

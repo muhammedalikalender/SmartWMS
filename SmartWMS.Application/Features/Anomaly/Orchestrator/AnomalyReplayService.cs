@@ -24,13 +24,22 @@ public class AnomalyReplayService : IAnomalyReplayService
 
     public async Task<AnomalyReplayResult> ReplayDecisionAsync(Guid alertId, CancellationToken cancellationToken = default)
     {
-        // 1. LOAD AUDIT DATA
-        var alert = await _anomalyRepository.GetByIdAsync(alertId, cancellationToken);
-        if (alert == null) throw new InvalidOperationException("Anomali kaydı bulunamadı.");
+        try 
+        {
+            // 1. LOAD AUDIT DATA
+            var alert = await _anomalyRepository.GetByIdAsync(alertId, cancellationToken);
+            if (alert == null) throw new InvalidOperationException("Anomali kaydı bulunamadı.");
 
-        // 2. CONTEXT RECONSTITUTION (Dondurulmuş bağlamı canlandırıyoruz)
-        var snapshot = JsonSerializer.Deserialize<AnomalyContextSnapshot>(alert.ContextSnapshotJson)!;
-        var originalReport = JsonSerializer.Deserialize<AnomalyAuditReport>(alert.AuditReportJson)!;
+            // PRODUCTION HARDENING: Version & Integrity Check
+            if (string.IsNullOrEmpty(alert.ContextSnapshotJson))
+                throw new InvalidOperationException("Anomali snapshot verisi bozulmuş veya eksik.");
+            
+            // 2. CONTEXT RECONSTITUTION
+            var snapshot = JsonSerializer.Deserialize<AnomalyContextSnapshot>(alert.ContextSnapshotJson);
+            var originalReport = JsonSerializer.Deserialize<AnomalyAuditReport>(alert.AuditReportJson);
+
+            if (snapshot == null || originalReport == null)
+                throw new InvalidOperationException("Snapshot deserialization hatası: Format uyumsuzluğu.");
 
         // Staff-Level Note: Gerçek aggregate yerine rules-engine için 
         // gerekli alanları doldurulmuş 'rehydrated' bir shelf oluşturuyoruz.
@@ -59,12 +68,19 @@ public class AnomalyReplayService : IAnomalyReplayService
             ? "Sonuç birebir doğrulandı. İşlem deterministik." 
             : $"DİKKAT: Sonuç sapması saptandı! Orijinal: {originalReport.FinalSeverity}, Replay: {replayedReport.FinalSeverity}";
 
-        return new AnomalyReplayResult(
-            AlertId: alertId,
-            IsReproduced: isReproduced,
-            OriginalReport: originalReport,
-            ReplayedReport: replayedReport,
-            DivergenceNotes: divergenceNotes
-        );
+            return new AnomalyReplayResult(
+                AlertId: alertId,
+                IsReproduced: isReproduced,
+                OriginalReport: originalReport,
+                ReplayedReport: replayedReport,
+                DivergenceNotes: divergenceNotes
+            );
+        }
+        catch (Exception ex)
+        {
+            // Forensic-grade logging (Basitleştirilmiş)
+            Console.WriteLine($"REPLAY ERROR [Alert: {alertId}]: {ex.Message}");
+            throw new InvalidOperationException($"Replay işlemi başarısız: {ex.Message}");
+        }
     }
 }

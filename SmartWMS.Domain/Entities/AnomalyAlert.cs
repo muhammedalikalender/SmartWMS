@@ -28,6 +28,9 @@ public class AnomalyAlert : Entity
     
     public bool IsResolved { get; private set; }
     public DateTime? ResolvedOn { get; private set; }
+    
+    // Snapshot yapısındaki değişiklikleri yönetmek için (Versioning)
+    public string SchemaVersion { get; private set; } = "1.0.0";
 
     // EF Core
     protected AnomalyAlert() { }

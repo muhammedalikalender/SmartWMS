@@ -23,6 +23,7 @@ public static class DependencyInjection
 
         // Anomaly Persistence (Audit Store)
         services.AddSingleton<IAnomalyRepository, MockAnomalyRepository>();
+        services.AddScoped<IDecisionGraphCache, DecisionGraphCache>();
 
         // Repositories & UoW (Mock Implementations for Runtime Stability)
         services.AddScoped<IShelfRepository, MockShelfRepository>();

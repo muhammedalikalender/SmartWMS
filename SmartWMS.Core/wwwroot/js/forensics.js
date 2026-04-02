@@ -45,7 +45,7 @@ async function loadRootCause() {
         link.style("opacity", l => causalData.causalNodeIds.includes(l.source.id) && causalData.causalNodeIds.includes(l.target.id) ? 1 : 0.05);
         label.style("opacity", d => causalData.causalNodeIds.includes(d.id) ? 1 : 0.1);
 
-        notify(causalData.primaryCauseExplanation, true);
+        notify(causalData.primaryCause, true);
     } catch (err) {
         notify("HATA: " + err.message);
     }

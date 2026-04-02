@@ -11,10 +11,17 @@ using SmartWMS.Application.Features.Anomaly.Orchestrator;
 public class DecisionGraphController : ControllerBase
 {
     private readonly IDecisionGraphBuilder _graphBuilder;
+    private readonly IAnomalyReplayService _replayService;
+    private readonly IDecisionGraphCache _cache;
 
-    public DecisionGraphController(IDecisionGraphBuilder graphBuilder)
+    public DecisionGraphController(
+        IDecisionGraphBuilder graphBuilder, 
+        IAnomalyReplayService replayService,
+        IDecisionGraphCache cache)
     {
         _graphBuilder = graphBuilder;
+        _replayService = replayService;
+        _cache = cache;
     }
 
     /// <summary>
@@ -24,9 +31,21 @@ public class DecisionGraphController : ControllerBase
     [HttpGet("{id}/decision-graph")]
     public async Task<IActionResult> GetDecisionGraph(Guid id, CancellationToken cancellationToken)
     {
+        // 1. CACHE-FIRST CHECK (Production Performance)
+        var cachedGraph = _cache.Get(id);
+        if (cachedGraph != null) return Ok(cachedGraph);
+
         try
         {
-            var graph = await _graphBuilder.BuildGraphAsync(id, cancellationToken);
+            // 2. RE-EXECUTE REPLAY (If not in cache)
+            var replayResult = await _replayService.ReplayDecisionAsync(id, cancellationToken);
+            
+            // 3. BUILD GRAPH
+            var graph = _graphBuilder.BuildGraph(replayResult.ReplayedReport, id);
+
+            // 4. PERSIST TO CACHE
+            _cache.Set(id, graph);
+
             return Ok(graph);
         }
         catch (InvalidOperationException ex)
