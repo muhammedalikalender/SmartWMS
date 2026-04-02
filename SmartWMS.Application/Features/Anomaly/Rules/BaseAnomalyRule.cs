@@ -13,15 +13,20 @@ public abstract class BaseAnomalyRule : IAnomalyRule
 
     public abstract Task<AnomalyEvaluationResult> EvaluateAsync(AnomalyContext context);
 
-    protected AnomalyEvaluationResult CreateResult(bool isAnomaly, double score, string reason)
+    protected AnomalyEvaluationResult CreateResult(
+        bool isAnomaly, 
+        double severity, 
+        double confidence, 
+        IReadOnlyList<AnomalyEvidence> evidences)
     {
         return new AnomalyEvaluationResult
         {
             IsAnomaly = isAnomaly,
-            SeverityScore = Math.Clamp(score, 0.0, 1.0),
+            SeverityScore = Math.Clamp(severity, 0.0, 1.0),
+            ConfidenceScore = Math.Clamp(confidence, 0.0, 1.0),
             RuleName = RuleName,
             Category = Category,
-            Reason = reason
+            Evidences = evidences ?? new List<AnomalyEvidence>()
         };
     }
 }

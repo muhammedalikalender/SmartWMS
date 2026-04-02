@@ -12,13 +12,26 @@ public class AnomalyEvaluationResult
     
     // 0.0 (Temiz) -> 1.0 (Kritik Anomali)
     public double SeverityScore { get; init; }
+
+    // Kuralın kendi kararına olan güven seviyesi (0.0 - 1.0)
+    public double ConfidenceScore { get; init; }
     
     public string RuleName { get; init; } = string.Empty;
-    public string Reason { get; init; } = string.Empty;
 
-    // ML entegrasyonu için confidence veya ek metadatalar (örn: Hızlanma trend verileri)
+    // Şema bağımlı makinece okunabilir kanıtlar (Signals, Temporal Data vb.)
+    public IReadOnlyList<AnomalyEvidence> Evidences { get; init; } = new List<AnomalyEvidence>();
+
+    // ML entegrasyonu için ek metadatalar
     public IReadOnlyDictionary<string, object> Metadata { get; init; } = new Dictionary<string, object>();
 
     public static AnomalyEvaluationResult Healthy(string ruleName, AnomalyCategory category) 
-        => new() { IsAnomaly = false, SeverityScore = 0, RuleName = ruleName, Category = category, Reason = "Normal" };
+        => new() 
+        { 
+            IsAnomaly = false, 
+            SeverityScore = 0, 
+            ConfidenceScore = 1.0,
+            RuleName = ruleName, 
+            Category = category, 
+            Evidences = new List<AnomalyEvidence>() 
+        };
 }

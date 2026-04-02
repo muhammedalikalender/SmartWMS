@@ -59,23 +59,46 @@ public class SuddenShrinkageRule : BaseAnomalyRule
 
         if (massDifference.Kilograms > noiseThreshold)
         {
-            // 6. Severity (Şiddet) Hesaplaması: Düşüş miktarı kütle kaybı oranıyla orantılı
-            double dropRatio = massDifference.Kilograms / baselineMass.Kilograms;
+            // 6. Evidence Generation (Yapılandırılmış Kanıt Üretimi)
+            var evidences = new List<AnomalyEvidence>();
             
-            // Eğer %100 düşüş olursa severity 1.0 (Critical)
+            // Temel sinyal: Kütle kaybı
+            double dropRatio = massDifference.Kilograms / baselineMass.Kilograms;
+            evidences.Add(new AnomalyEvidence(
+                SignalType: "MassDrop",
+                Value: currentMass.Kilograms,
+                BaselineValue: baselineMass.Kilograms,
+                Deviation: dropRatio,
+                Weight: 0.8,
+                Timestamp: DateTime.UtcNow
+            ));
+
+            // 7. Confidence & Severity Calculation
+            // Makas ne kadar büyükse kararın doğruluğuna o kadar güveniriz (Confidence).
+            double confidence = Math.Clamp(dropRatio * 1.5, 0.5, 1.0);
             double severity = dropRatio;
 
-            // 7. Composite Contextual Verification
-            // Eğer ortamda sarsıntı/vibrasyon da ölçüldüyse (Stability Index düşükse) hırsızlıktan ziyade palet düşmesi/çarpma riski artar.
-            // (Composite Engine ile desteklenecek olsa da burada skor esnekliği katarız)
-            string reason = "Kütlede ani ve faturasız azalma tespit edildi. Kritik stok kaçağı!";
+            // 8. Composite Evidence: Sarsıntı/Vibrasyon
             if (context.LastSensorData.StabilityIndex.IsCritical)
             {
-                reason += " Olası Devrilme/Düşme Olayı: Sarsıntı indeksi oldukça düşük tespit edildi.";
-                severity = Math.Min(severity * 1.5, 1.0); // Şiddeti çarparak max 1.0'a kilitler
+                evidences.Add(new AnomalyEvidence(
+                    SignalType: "StabilitySpike",
+                    Value: context.LastSensorData.StabilityIndex.Value,
+                    BaselineValue: 1.0, // Stable baseline
+                    Deviation: 1.0 - context.LastSensorData.StabilityIndex.Value,
+                    Weight: 0.2, // Şiddet arttırıcı yan sinyal
+                    Timestamp: DateTime.UtcNow
+                ));
+                
+                // Eğer sarsıntı varsa şiddeti arttırıyoruz (Digital Twin fiziksel doğruluğu)
+                severity = Math.Min(severity * 1.5, 1.0);
             }
 
-            return CreateResult(isAnomaly: true, score: severity, reason: reason);
+            return CreateResult(
+                isAnomaly: true, 
+                severity: severity, 
+                confidence: confidence, 
+                evidences: evidences);
         }
 
         return AnomalyEvaluationResult.Healthy(RuleName, Category);

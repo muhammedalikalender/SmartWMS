@@ -6,5 +6,5 @@ using SmartWMS.Application.Features.Anomaly.Models;
 
 public interface IAnomalyEngine
 {
-    Task<IEnumerable<AnomalyEvaluationResult>> EvaluateAllRulesAsync(AnomalyContext context);
+    Task<AnomalyAuditReport> EvaluateAllRulesAsync(AnomalyContext context);
 }
