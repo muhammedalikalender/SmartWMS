@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decision Forensics Explorer - SmartWMS</title>
+    <link rel="stylesheet" href="css/forensics.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body class="cypher-dark">
+    <div id="forensic-app">
+        <!-- Header: Search & Navigation -->
+        <header class="glass-header">
+            <div class="logo">SmartWMS | Decision Forensics</div>
+            <div class="search-bar">
+                <input type="text" id="anomaly-id-input" placeholder="Anomaly ID Girin...">
+                <button id="load-btn">Explore</button>
+            </div>
+            <div class="status-indicator" id="playback-status">Ready</div>
+        </header>
+
+        <main class="main-container">
+            <!-- 1. The Interaction Canvas (D3 Graph) -->
+            <div id="graph-viewport">
+                <svg id="decision-graph-svg"></svg>
+                <div class="graph-controls">
+                    <button onclick="zoomIn()">+</button>
+                    <button onclick="zoomOut()">-</button>
+                    <button onclick="resetGraph()">Reset</button>
+                    <button id="highlight-path-btn" class="active">Show Path</button>
+                </div>
+            </div>
+
+            <!-- 2. Node Inspector (Side Panel) -->
+            <aside id="inspector-panel" class="hidden">
+                <div class="panel-header">
+                    <h3>Node Inspector</h3>
+                    <button class="close-btn" onclick="closeInspector()">&times;</button>
+                </div>
+                <div class="inspector-content">
+                    <div id="node-type-badge"></div>
+                    <div id="node-label-main"></div>
+                    <hr>
+                    <div class="metadata-section">
+                        <h4>Evidence & Metadata</h4>
+                        <div id="node-metadata-container"></div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+
+        <!-- 3. Decision Timeline (Bottom Bar) -->
+        <footer class="timeline-bar">
+            <div id="decision-step-counter">Steps: 0</div>
+            <div class="playback-controls">
+                <span>REPLAY ENGINE</span>
+                <button id="replay-btn">Re-run Deterministic Check</button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="hidden"></div>
+
+    <script src="js/forensics.js"></script>
+</body>
+</html>

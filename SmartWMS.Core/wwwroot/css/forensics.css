@@ -1,0 +1,152 @@
+:root {
+    --bg-deep: #050505;
+    --bg-glass: rgba(20, 20, 25, 0.85);
+    --neon-blue: #00f3ff;
+    --neon-purple: #9d00ff;
+    --neon-red: #ff0055;
+    --text-dim: #a0a0a0;
+    --text-bright: #ffffff;
+    --accent: #222;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-deep);
+    color: var(--text-bright);
+    overflow: hidden;
+}
+
+#forensic-app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Header & Glassmorphism */
+.glass-header {
+    background: var(--bg-glass);
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid #333;
+    padding: 0.5rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 50px;
+    z-index: 1000;
+}
+
+.search-bar input {
+    background: #1a1a1a;
+    border: 1px solid #444;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    width: 300px;
+}
+
+.search-bar button {
+    background: var(--neon-blue);
+    border: none;
+    padding: 6px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Viewport & Graph */
+.main-container {
+    flex: 1;
+    position: relative;
+    display: flex;
+}
+
+#graph-viewport {
+    flex: 1;
+    background-image: radial-gradient(#222 1px, transparent 1px);
+    background-size: 30px 30px;
+    cursor: grab;
+}
+
+#decision-graph-svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* Inspector Panel */
+#inspector-panel {
+    width: 350px;
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    border-left: 1px solid #333;
+    padding: 1.5rem;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 900;
+}
+
+#inspector-panel.hidden {
+    transform: translateX(100%);
+}
+
+.node-link {
+    stroke: #444;
+    stroke-opacity: 0.4;
+    stroke-width: 2;
+    transition: stroke 0.3s;
+}
+
+.node-link.highlighted {
+    stroke: var(--neon-blue);
+    stroke-opacity: 1;
+    stroke-width: 4;
+}
+
+/* Node Styles */
+.node-circle {
+    stroke: #222;
+    stroke-width: 2px;
+}
+
+/* Graph Controls */
+.graph-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.graph-controls button {
+    background: #111;
+    border: 1px solid #444;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+/* Timeline/Footer */
+.timeline-bar {
+    height: 40px;
+    background: #000;
+    border-top: 1px solid #222;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+}
+
+.playback-controls button {
+    background: transparent;
+    border: 1px solid var(--neon-blue);
+    color: var(--neon-blue);
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+}
