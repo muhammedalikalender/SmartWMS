@@ -90,6 +90,7 @@ async function loadGraph() {
         
         graphData = await response.json();
         render(graphData);
+        localStorage.setItem('last_anomaly_id', id); // 🚀 SYNC WITH MIRROR DASHBOARD
         notify("Graph Synchronized", true);
     } catch (err) {
         notify("HATA: " + err.message);
