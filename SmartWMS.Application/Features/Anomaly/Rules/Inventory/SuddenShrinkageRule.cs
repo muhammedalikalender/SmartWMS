@@ -9,7 +9,9 @@ using SmartWMS.Shared.Enums;
 
 public class SuddenShrinkageRule : BaseAnomalyRule
 {
-    public override string RuleName => "Sudden Shrinkage Detection";
+    public override string RuleName => "Ani Kütle Kaybı (Sudden Shrinkage)";
+    public override string RuleId => "SR-001";
+    public override string Version => "1.0.0";
     public override int Priority => 10;
     public override AnomalyCategory Category => AnomalyCategory.Inventory;
 

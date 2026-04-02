@@ -6,5 +6,6 @@ public enum TransactionType
     Inbound = 1,
     Outbound = 2,
     Relocation = 3,
-    AnomalyInjection = 99 // Simulator'ün kasıtlı zehirli veri ürettiğini belirtebilir
+    Internal = 4,
+    AnomalyInjection = 99 
 }

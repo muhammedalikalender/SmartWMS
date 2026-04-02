@@ -1,7 +1,6 @@
 namespace SmartWMS.Domain.Entities;
 
 using System;
-using System;
 using SmartWMS.Domain.Common;
 using SmartWMS.Domain.ValueObjects;
 

@@ -23,6 +23,13 @@ public class Shelf : AggregateRoot
     // EF Core
     protected Shelf() { }
 
+    // Rehydration constructor for replay/persistence
+    public Shelf(Guid id, string code) : base(id)
+    {
+        Code = code;
+        StabilityIndex = StabilityIndex.Stable;
+    }
+
     public Shelf(string code)
     {
         if (string.IsNullOrWhiteSpace(code))

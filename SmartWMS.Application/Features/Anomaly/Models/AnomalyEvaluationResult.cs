@@ -16,6 +16,8 @@ public class AnomalyEvaluationResult
     // Kuralın kendi kararına olan güven seviyesi (0.0 - 1.0)
     public double ConfidenceScore { get; init; }
     
+    public string RuleId { get; init; } = string.Empty;
+    public string RuleVersion { get; init; } = string.Empty;
     public string RuleName { get; init; } = string.Empty;
 
     // Şema bağımlı makinece okunabilir kanıtlar (Signals, Temporal Data vb.)

@@ -18,6 +18,12 @@ public class AnomalyAlert : Entity
     // Deterministik açıklama ve kanıtların o anki kopyası (Audit Snapshot)
     public string AuditReportJson { get; private set; }
     
+    // Karar anındaki girdi verileri (Replay Snapshot)
+    public string ContextSnapshotJson { get; private set; }
+
+    // Replay bütünlük kontrolü için hash
+    public string DeterministicHash { get; private set; }
+    
     public DateTime DetectedOn { get; private set; }
     
     public bool IsResolved { get; private set; }
@@ -32,7 +38,9 @@ public class AnomalyAlert : Entity
         string category, 
         double severity, 
         double confidence, 
-        string auditReportJson)
+        string auditReportJson,
+        string contextSnapshotJson,
+        string deterministicHash)
     {
         Id = Guid.NewGuid();
         ShelfId = shelfId;
@@ -41,6 +49,8 @@ public class AnomalyAlert : Entity
         Severity = severity;
         Confidence = confidence;
         AuditReportJson = auditReportJson;
+        ContextSnapshotJson = contextSnapshotJson;
+        DeterministicHash = deterministicHash;
         DetectedOn = DateTime.UtcNow;
         IsResolved = false;
     }

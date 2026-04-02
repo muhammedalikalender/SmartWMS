@@ -20,6 +20,7 @@ public static class DependencyInjection
         services.AddScoped<IExplanationMapper, ExplanationMapper>();
         services.AddScoped<IAnomalyOrchestrator, AnomalyOrchestrator>();
         services.AddScoped<IAnomalyPipelineDispatcher, AnomalyPipelineDispatcher>();
+        services.AddScoped<IAnomalyReplayService, AnomalyReplayService>();
         
         // Central Anomaly Engine
         services.AddScoped<IAnomalyEngine, AnomalyEngine>();

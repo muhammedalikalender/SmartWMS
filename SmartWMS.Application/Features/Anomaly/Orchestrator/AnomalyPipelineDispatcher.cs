@@ -60,25 +60,43 @@ public class AnomalyPipelineDispatcher : IAnomalyPipelineDispatcher
         // 2. TRIGGER ENGINE (Pure Stateless Computation)
         var auditReport = await _anomalyEngine.EvaluateAllRulesAsync(context);
 
-        // 3. PERSIST AUDIT (Immutable Store Logic)
+        // 3. PERSIST AUDIT & SNAPSHOT (Immutable Replay Store)
         if (auditReport.IsConfirmedAnomaly)
         {
+            // SNAPSHOT ASSEMBLY
+            var snapshot = new AnomalyContextSnapshot(
+                SchemaVersion: "1.0",
+                RequestId: Guid.NewGuid(),
+                ShelfId: shelfId,
+                SensedMass: lastSnapshot.TotalMass.Kilograms,
+                SensedStability: lastSnapshot.StabilityIndex.Value,
+                TriggerType: context.EvaluationTriggerType,
+                CapturedAt: DateTime.UtcNow,
+                DeterministicHash: GenerateDeterministicHash(context)
+            );
+
             var alert = new AnomalyAlert(
                 shelfId: shelfId,
                 sourceEventId: domainEvent.EventId,
-                category: "AutomaticDispatch", // Engine'den de gelebilir
+                category: "AutomaticDispatch",
                 severity: auditReport.FinalSeverity,
                 confidence: auditReport.AggregateConfidence,
-                auditReportJson: JsonSerializer.Serialize(auditReport)
+                auditReportJson: JsonSerializer.Serialize(auditReport),
+                contextSnapshotJson: JsonSerializer.Serialize(snapshot),
+                deterministicHash: snapshot.DeterministicHash
             );
 
             await _anomalyRepository.AddAsync(alert, cancellationToken);
-            
-            // Not: UnitOfWork.SaveChangesAsync burada çağrılmamalı? 
-            // Staff-Level: Eğer bu bir 'side-effect' ise ayrı bir transactional boundary olabilir.
-            // Ancak auditability için ana event akışıyla atomik olması tercih edilebilir.
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
+    }
+
+    private string GenerateDeterministicHash(AnomalyContext context)
+    {
+        // Staff-Level Note: Gerçekte SHA256 veya benzeri bir algoritma ile 
+        // context içeriği (Shelf state + Sensor + Trigger) hash'lenmelidir.
+        // Şimdilik basit bir string birleştirme simülasyonu yapıyoruz.
+        return $"hash_{context.ShelfSnapshot.Id}_{context.LastSensorData.TotalMass.Kilograms}_{DateTime.UtcNow.Ticks}";
     }
 
     private Guid GetShelfIdFromEvent(IDomainEvent @event)
