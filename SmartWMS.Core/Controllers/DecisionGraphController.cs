@@ -40,8 +40,8 @@ public class DecisionGraphController : ControllerBase
             // 2. RE-EXECUTE REPLAY (If not in cache)
             var replayResult = await _replayService.ReplayDecisionAsync(id, cancellationToken);
             
-            // 3. BUILD GRAPH
-            var graph = _graphBuilder.BuildGraph(replayResult.ReplayedReport, id);
+            // 3. BUILD GRAPH (Passing Historical Memory Insights)
+            var graph = await _graphBuilder.BuildGraphAsync(id, replayResult.OriginalReport.SimilarDecisions, cancellationToken);
 
             // 4. PERSIST TO CACHE
             _cache.Set(id, graph);

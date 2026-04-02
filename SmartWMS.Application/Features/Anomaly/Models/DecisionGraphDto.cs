@@ -1,10 +1,12 @@
 namespace SmartWMS.Application.Features.Anomaly.Models;
 
 using System.Collections.Generic;
+using SmartWMS.Application.Features.Anomaly.Queries;
 
 public record DecisionGraphDto(
     List<DecisionNodeDto> Nodes,
-    List<DecisionEdgeDto> Edges
+    List<DecisionEdgeDto> Edges,
+    List<SemanticRecallResult>? SimilarDecisions = null
 );
 
 public record DecisionNodeDto(

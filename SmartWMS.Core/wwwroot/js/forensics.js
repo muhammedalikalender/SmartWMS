@@ -207,7 +207,26 @@ function highlightPath(targetNode) {
     // DFS/BFS ile path bulma logiği eklenebilir. 
     // Basitlik için tüm ilgili linkleri vurguluyoruz:
     link.classed("highlighted", l => l.target.id === targetNode.id || l.source.id === targetNode.id);
+    // 🧠 SEMANTIC MEMORY INSIGHTS
+    if (window.lastGraphData && window.lastGraphData.similarDecisions && window.lastGraphData.similarDecisions.length > 0) {
+        let memoryHtml = "<div style='margin-top:10px; padding:10px; border-left:3px solid #ff00ff; background:rgba(255,0,255,0.05)'>";
+        memoryHtml += "<strong>🧠 SEMANTIC RECALL (Benzer Vakalar):</strong><br/>";
+        window.lastGraphData.similarDecisions.forEach(sd => {
+            memoryHtml += `<div style='font-size:0.85em; margin-top:5px; cursor:pointer' onclick="loadGraph('${sd.anomalyId}')">`;
+            memoryHtml += `🔗 %${(sd.hybridScore*100).toFixed(0)} - ${sd.summary.substring(0, 50)}...`;
+            memoryHtml += "</div>";
+        });
+        memoryHtml += "</div>";
+        
+        console.log("Memory Insights:", window.lastGraphData.similarDecisions);
+        notify(memoryHtml, true);
+    }
 }
+
+// 🚀 RE-RENDER ON RESIZE
+window.addEventListener("resize", () => {
+    if (window.lastGraphData) render(window.lastGraphData);
+});
 
 // HELPERS
 function dragstarted(event) { if (!event.active) simulation.alphaTarget(0.3).restart(); event.subject.fx = event.subject.x; event.subject.fy = event.subject.y; }

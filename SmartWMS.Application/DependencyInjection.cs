@@ -25,6 +25,8 @@ public static class DependencyInjection
         services.AddScoped<IDecisionGraphBuilder, DecisionGraphBuilder>();
         services.AddScoped<IDecisionDiffEngine, DecisionDiffEngine>();
         services.AddScoped<IRootCauseNavigator, RootCauseNavigator>();
+        services.AddScoped<ICausalSignatureGenerator, CausalSignatureGenerator>();
+        services.AddSingleton<ISemanticMemoryStore, SemanticMemoryStore>();
         
         // Central Anomaly Engine
         services.AddScoped<IAnomalyEngine, AnomalyEngine>();

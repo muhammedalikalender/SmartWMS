@@ -21,7 +21,7 @@ public class DecisionGraphBuilder : IDecisionGraphBuilder
         _replayService = replayService;
     }
 
-    public async Task<DecisionGraphDto> BuildGraphAsync(Guid alertId, CancellationToken cancellationToken = default)
+    public async Task<DecisionGraphDto> BuildGraphAsync(Guid alertId, IReadOnlyList<SemanticRecallResult>? similarDecisions = null, CancellationToken cancellationToken = default)
     {
         // 1. RE-EXECUTE PIPELINE (Decision Replay)
         var replayResult = await _replayService.ReplayDecisionAsync(alertId, cancellationToken);

@@ -87,6 +87,22 @@ public class AnomalyPipelineDispatcher : IAnomalyPipelineDispatcher
             );
 
             await _anomalyRepository.AddAsync(alert, cancellationToken);
+            
+            // 🧠 4. COGNITIVE STORAGE: Store in Semantic Memory
+            if (alert.Severity > 0.1)
+            {
+                var rootCause = await _navigator.AnalyzeRootCauseAsync(alert.Id, cancellationToken);
+                var vector = _signatureGenerator.GenerateReasoningVector(auditReport, rootCause);
+                var sig = _signatureGenerator.GenerateCausalHash(rootCause);
+
+                var knowledge = new DecisionKnowledge(
+                    alert.Id, vector, sig, alert.Category + ": " + auditReport.MappedExplanation, 
+                    alert.Severity, alert.Severity > 0.3
+                );
+
+                await _memoryStore.StoreDecisionAsync(knowledge);
+            }
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
