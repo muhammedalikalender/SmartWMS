@@ -5,16 +5,24 @@ using System.Collections.Generic;
 
 public record RootCauseResultDto(
     Guid AnomalyId,
+    string PrimaryCause, // "Mass drop + instability" gibi ana neden özeti
     List<string> CausalNodeIds, // Karar grafiği üzerindeki 'Vazgeçilmez' düğümler
-    List<AblationInsightDto> AblationInsights, // Ablation testi detayları
-    string PrimaryCauseExplanation,
-    double ConfidenceOfCausality // 0.0 - 1.0 (Nedensellik güveni)
+    List<RootCauseEvidenceDto> CriticalEvidences, // En kritik sinyallerin listesi
+    List<AblationInsightDto> AblationInsights, // Guided Ablation testi detayları
+    double Confidence // %94 vb. Nedensellik güveni
+);
+
+public record RootCauseEvidenceDto(
+    string SignalType,
+    double ContributionScore,
+    bool IsCritical
 );
 
 public record AblationInsightDto(
     string NodeId,
     string Label,
-    double ImpactOnScore, // Bu kural çıkarıldığında skordaki değişim
-    bool IsFlippingNode, // Kararı anomali -> sağlıklıya çeviren düğüm mü?
+    double ContributionScore, // Başlangıçtaki etki puanı
+    double ImpactOnScore, // Ablasyon sonrası skor değişimi (Delta)
+    bool IsFlippingNode, // Kararı flip eden Necessary Cause mu?
     string CounterfactualSummary
 );

@@ -30,65 +30,81 @@ public class RootCauseNavigator : IRootCauseNavigator
 
     public async Task<RootCauseResultDto> AnalyzeRootCauseAsync(Guid alertId, CancellationToken cancellationToken = default)
     {
-        // 1. BASELINE REPLAY (Original Decision Context)
-        var alert = await _anomalyRepository.GetByIdAsync(alertId, cancellationToken);
-        if (alert == null) throw new InvalidOperationException("Anomali kaydı bulunamadı.");
-
-        // Context'i canlandırıyoruz
+        // 1. BASELINE REPLAY (Full Decision Context)
         var replayResult = await _replayService.ReplayDecisionAsync(alertId, cancellationToken);
         var baseReport = replayResult.ReplayedReport;
         var context = replayResult.ReplayedContext;
 
-        var causalNodeIds = new List<string>();
+        if (!baseReport.IsConfirmedAnomaly)
+            throw new InvalidOperationException("Anomali olmayan bir kayıt için kök sebep analizi yapılamaz.");
+
+        var activeRules = baseReport.RuleEvaluations.Where(r => r.IsAnomaly).ToList();
+        
+        // 🚀 GUIDED ABLATION: STEP 1 - RANKING (Heuristic Pruning)
+        // Etki puanı (Severity * Confidence) yüksekten düşüğe doğru sıralıyoruz.
+        // Ama eleme yaparken EN DÜŞÜK etkiden başlayacağız (Greedy Elimination).
+        var rankedItems = activeRules
+            .OrderBy(r => r.SeverityScore * r.ConfidenceScore) // En düşük etkiliden başla
+            .ToList();
+
+        var currentIgnoredIds = new List<string>();
+        var necessaryCauseIds = new List<string>();
         var ablationInsights = new List<AblationInsightDto>();
 
-        // 🟢 Sadece trigger olan (IsAnomaly: true) kuralları test edersek yeterli
-        var activeRules = baseReport.RuleEvaluations.Where(r => r.IsAnomaly).ToList();
-
-        // 2. COUNTERFACTUAL SIMULATION (Ablation Study)
-        foreach (var rule in activeRules)
+        // 🚀 GUIDED ABLATION: STEP 2 & 3 - ITERATIVE PRUNING & FLIP CHECK
+        foreach (var rule in rankedItems)
         {
-            // "Eğer bu kural olmasaydı ne olurdu?" (Masking)
-            var reportWithoutRule = await _engine.EvaluateAllRulesAsync(context, new[] { rule.RuleId });
+            // Bu kuralı ve daha önce elenmiş gereksizleri çıkararak simüle et
+            var testIgnoredIds = currentIgnoredIds.Concat(new[] { rule.RuleId }).ToList();
+            var reportAfterPruning = await _engine.EvaluateAllRulesAsync(context, testIgnoredIds);
 
-            double severityDrop = baseReport.FinalSeverity - reportWithoutRule.FinalSeverity;
-            bool isFlipping = baseReport.IsConfirmedAnomaly && !reportWithoutRule.IsConfirmedAnomaly;
+            bool stillAnomaly = reportAfterPruning.IsConfirmedAnomaly;
 
-            var insight = new AblationInsightDto(
-                NodeId: $"rule-{rule.RuleId}",
-                Label: rule.RuleName,
-                ImpactOnScore: severityDrop,
-                IsFlippingNode: isFlipping,
-                CounterfactualSummary: isFlipping 
-                    ? $"[FLIP] Bu kural çıkarıldığında karar 'Healthy'ye dönüyor. Bu bir NECESSARY CAUSE (Gerekli Sebep) düğümüdür." 
-                    : $"Kuralın etkisi var ancak tek başına kararı değiştirmiyor."
-            );
-
-            ablationInsights.Add(insight);
-
-            // 🎯 Minimal Sufficient Set (Kök Sebep) tespiti
-            // Eğer kural çıkarıldığında karar değişiyorsa (flipping) bu bir kök sebeptir.
-            if (isFlipping)
+            if (stillAnomaly)
             {
-                causalNodeIds.Add($"rule-{rule.RuleId}");
-                // Kurala bağlı evidence node'larını da Causal Path'e ekleyebiliriz (Görsellik için)
-                causalNodeIds.Add($"event-{alertId}"); 
-                causalNodeIds.Add("context-freeze");
-                causalNodeIds.Add("score-node");
+                // Karar DEĞİŞMEDİ -> Bu kural 'Gürültü' (Noise). Kalıcı olarak eleyebiliriz.
+                currentIgnoredIds.Add(rule.RuleId);
+                
+                ablationInsights.Add(new AblationInsightDto(
+                    $"rule-{rule.RuleId}", rule.RuleName, rule.SeverityScore, 0, false, 
+                    "Sistemden çıkarıldığında karar DEĞİŞMEDİ. Bu bir 'Side-Effect'tir."
+                ));
+            }
+            else
+            {
+                // Karar DEĞİŞTİ (Flipped) -> Kararı ayakta tutan asıl sebeplerden biri!
+                // Bu kuralı 'Necessary Cause' olarak işaretle ve maskeleme listesine EKLEME!
+                necessaryCauseIds.Add(rule.RuleId);
+
+                ablationInsights.Add(new AblationInsightDto(
+                    $"rule-{rule.RuleId}", rule.RuleName, rule.SeverityScore, baseReport.FinalSeverity - reportAfterPruning.FinalSeverity, true,
+                    "[NECESSARY CAUSE] Bu kural olmasaydı karar 'Healthy'ye dönecekti."
+                ));
             }
         }
 
-        // 3. FINAL SYNTHESIS
-        string primarySummary = causalNodeIds.Any() 
-            ? $"ANALİZ TAMAMLANDI: Kararı tetikleyen {causalNodeIds.Count(id => id.StartsWith("rule"))} ana kural '{string.Join(", ", ablationInsights.Where(i => i.IsFlippingNode).Select(i => i.Label))}' kök sebep olarak saptandı."
-            : "Kararı tek bir kural kontrol etmiyor, birden fazla kuralın ortak (ensemble) etkisi baskın.";
+        // 🚀 STEP 4: MINIMAL SUFFICIENT SET EXTRACTION
+        var causalNodeIds = new List<string> { $"event-{alertId}", "context-freeze", "score-node", "explanation-node" };
+        foreach (var id in necessaryCauseIds) causalNodeIds.Add($"rule-{id}");
+
+        var criticalEvidences = activeRules
+            .Where(r => necessaryCauseIds.Contains(r.RuleId))
+            .SelectMany(r => r.Evidences.Select(e => new RootCauseEvidenceDto(e.SignalType, r.SeverityScore, true)))
+            .ToList();
+
+        string primaryCauseSummary = necessaryCauseIds.Count switch {
+            0 => "Kök sebep belirsiz (karmaşık kural etkileşimi).",
+            1 => $"Ana Kök Sebep: {activeRules.First(r => r.RuleId == necessaryCauseIds[0]).RuleName}",
+            _ => $"Bileşik Nedensellik: {string.Join(" + ", activeRules.Where(r => necessaryCauseIds.Contains(r.RuleId)).Select(r => r.RuleName))}"
+        };
 
         return new RootCauseResultDto(
             alertId,
-            causalNodeIds.Distinct().ToList(),
+            primaryCauseSummary,
+            causalNodeIds,
+            criticalEvidences,
             ablationInsights,
-            primarySummary,
-            ConfidenceOfCausality: causalNodeIds.Any() ? 0.95 : 0.60
+            Confidence: necessaryCauseIds.Any() ? 0.94 : 0.40
         );
     }
 }
