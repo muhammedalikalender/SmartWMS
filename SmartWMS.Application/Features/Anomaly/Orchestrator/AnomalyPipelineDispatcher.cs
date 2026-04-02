@@ -52,9 +52,9 @@ public class AnomalyPipelineDispatcher : IAnomalyPipelineDispatcher
         if (shelf == null || lastSnapshot == null) return;
 
         var context = new AnomalyContext(
-            Shelf: shelf,
+            ShelfSnapshot: shelf,
             LastSensorData: lastSnapshot,
-            TransactionType: InferTransactionType(domainEvent)
+            EvaluationTriggerType: InferTransactionType(domainEvent)
         );
 
         // 2. TRIGGER ENGINE (Pure Stateless Computation)

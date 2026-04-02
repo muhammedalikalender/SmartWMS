@@ -1,6 +1,14 @@
 namespace Microsoft.Extensions.DependencyInjection;
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using SmartWMS.Application.Common.Interfaces;
 using SmartWMS.Application.Features.Anomaly.DataProviders;
+using SmartWMS.Domain.Entities;
+using SmartWMS.Infrastructure.Events;
 using SmartWMS.Infrastructure.Persistence;
 
 public static class DependencyInjection
@@ -27,7 +35,10 @@ public static class DependencyInjection
 
 public class MockShelfRepository : IShelfRepository
 {
-    private readonly List<Shelf> _shelves = new() { new Shelf("Shelf-101") { Id = Guid.Parse("00000000-0000-0000-0000-000000000101") } };
+    private readonly List<Shelf> _shelves = new() 
+    { 
+        new Shelf(Guid.Parse("00000000-0000-0000-0000-000000000101"), "Shelf-101") 
+    };
     
     public Task<Shelf?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) 
         => Task.FromResult(_shelves.FirstOrDefault(s => s.Id == id));
