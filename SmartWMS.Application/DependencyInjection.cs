@@ -23,6 +23,7 @@ public static class DependencyInjection
         services.AddScoped<IAnomalyReplayService, AnomalyReplayService>();
         services.AddScoped<IDecisionGraphBuilder, DecisionGraphBuilder>();
         services.AddScoped<IDecisionDiffEngine, DecisionDiffEngine>();
+        services.AddScoped<IRootCauseNavigator, RootCauseNavigator>();
         
         // Central Anomaly Engine
         services.AddScoped<IAnomalyEngine, AnomalyEngine>();

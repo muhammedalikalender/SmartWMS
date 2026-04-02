@@ -27,6 +27,28 @@ function init() {
 
     document.getElementById('load-btn').addEventListener('click', loadGraph);
     document.getElementById('diff-btn').addEventListener('click', loadDiff);
+    document.getElementById('root-cause-btn').addEventListener('click', loadRootCause);
+}
+
+async function loadRootCause() {
+    const id = document.getElementById('anomaly-id-input').value;
+    if (!id) return notify("Lütfen bir ID girin.");
+
+    try {
+        const response = await fetch(`/api/anomalies/${id}/root-cause`);
+        if (!response.ok) throw new Error("Causal Analysis yüklenemedi.");
+        
+        const causalData = await response.json();
+        
+        // VISUAL HIGHLIGHT: Dim non-causal nodes, glow causal path
+        node.style("opacity", d => causalData.causalNodeIds.includes(d.id) ? 1 : 0.1);
+        link.style("opacity", l => causalData.causalNodeIds.includes(l.source.id) && causalData.causalNodeIds.includes(l.target.id) ? 1 : 0.05);
+        label.style("opacity", d => causalData.causalNodeIds.includes(d.id) ? 1 : 0.1);
+
+        notify(causalData.primaryCauseExplanation, true);
+    } catch (err) {
+        notify("HATA: " + err.message);
+    }
 }
 
 async function loadDiff() {

@@ -19,16 +19,20 @@ public class AnomalyEngine : IAnomalyEngine
         _orchestrator = orchestrator;
     }
 
-    public async Task<AnomalyAuditReport> EvaluateAllRulesAsync(AnomalyContext context)
+    public async Task<AnomalyAuditReport> EvaluateAllRulesAsync(AnomalyContext context, IEnumerable<string>? ignoredRuleIds = null)
     {
         if (context == null) 
             throw new ArgumentNullException(nameof(context));
 
         var results = new List<AnomalyEvaluationResult>();
+        var ignoredSet = ignoredRuleIds?.ToHashSet() ?? new HashSet<string>();
 
         // Rule pipeline koşturuluyor
         foreach (var rule in _rules.OrderBy(r => r.Priority))
         {
+            if (ignoredSet.Contains(rule.RuleId))
+                continue;
+
             var result = await rule.EvaluateAsync(context);
             results.Add(result);
         }
